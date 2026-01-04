@@ -8,8 +8,17 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;700&display=swap');
         body { font-family: 'Hind Siliguri', sans-serif; background-color: #f8fafc; }
-        .taka::before { content: "৳ "; }
-        @media print { .no-print { display: none !important; } .print-area { display: block !important; width: 100% !important; } }
+        
+        /* Print Styles */
+        @media print {
+            .no-print { display: none !important; }
+            .print-area { display: block !important; width: 100% !important; border: none !important; padding: 0 !important; }
+            .print-header { display: block !important; margin-bottom: 20px; border-bottom: 2px solid #333; padding-bottom: 10px; }
+            table { font-size: 12px !important; width: 100% !important; border-collapse: collapse !important; }
+            th, td { border: 1px solid #ccc !important; padding: 6px !important; }
+            body { background: white !important; }
+        }
+        .print-header { display: none; }
     </style>
 </head>
 <body>
@@ -78,7 +87,7 @@
                             <option value="অন্যান্য">অন্যান্য</option>
                         </select>
                         <input type="number" id="expAmt" placeholder="টাকার পরিমাণ" class="w-full p-2 border rounded-lg text-sm" required>
-                        <input type="text" id="expNote" placeholder="খরচের নোট (ঐচ্ছিক)" class="w-full p-2 border rounded-lg text-sm">
+                        <input type="text" id="expNote" placeholder="খরচের নোট" class="w-full p-2 border rounded-lg text-sm">
                         <button type="submit" class="w-full bg-red-600 text-white py-2 rounded-lg font-bold shadow-md">সেভ খরচ</button>
                     </form>
                 </div>
@@ -91,7 +100,7 @@
                             <option value="বাংলাদেশ ইনসুলেশন">বাংলাদেশ ইনসুলেশন</option>
                             <option value="ক্রিস্টাল কোল্ড রুম">ক্রিস্টাল কোল্ড রুম</option>
                         </select>
-                        <input type="text" id="debtName" placeholder="ব্যাংক বা পার্টির নাম" class="w-full p-2 border rounded-lg text-sm" required>
+                        <input type="text" id="debtName" placeholder="ব্যাংক/পার্টির নাম" class="w-full p-2 border rounded-lg text-sm" required>
                         <input type="number" id="debtAmt" placeholder="বকেয়া এমাউন্ট" class="w-full p-2 border rounded-lg text-sm" required>
                         <button type="submit" class="w-full bg-orange-500 text-white py-2 rounded-lg font-bold shadow-md">সেভ বকেয়া</button>
                     </form>
@@ -100,10 +109,15 @@
 
             <div class="lg:col-span-2 space-y-8">
                 
-                <div class="bg-white p-6 rounded-2xl shadow-sm border print-area">
-                    <h3 class="font-bold text-indigo-700 mb-4 flex justify-between">
+                <div class="bg-white p-6 rounded-2xl shadow-sm border print-area" id="orderPrintArea">
+                    <div class="print-header">
+                        <h1 class="text-xl font-bold text-center" id="printCompName1">কোম্পানির নাম</h1>
+                        <p class="text-center font-bold">অর্ডার ডিটেইলস ও বকেয়া রিপোর্ট</p>
+                        <p class="text-center text-xs" id="printDate1">তারিখ: </p>
+                    </div>
+                    <h3 class="font-bold text-indigo-700 mb-4 flex justify-between items-center no-print">
                         <span>অর্ডার ডিটেইলস ও বকেয়া</span>
-                        <button onclick="window.print()" class="no-print bg-slate-100 text-slate-600 px-3 py-1 rounded-md text-[10px]">Print</button>
+                        <button onclick="printReport('orderPrintArea')" class="bg-indigo-100 text-indigo-700 px-3 py-1 rounded text-xs font-bold">প্রিন্ট</button>
                     </h3>
                     <div class="overflow-x-auto">
                         <table class="w-full text-xs text-left border-collapse">
@@ -122,16 +136,24 @@
                     </div>
                 </div>
 
-                <div class="bg-white p-6 rounded-2xl shadow-sm border print-area">
-                    <h3 class="font-bold text-orange-700 mb-4">ব্যাংক ও পার্টি বকেয়া তালিকা</h3>
+                <div class="bg-white p-6 rounded-2xl shadow-sm border print-area" id="debtPrintArea">
+                    <div class="print-header">
+                        <h1 class="text-xl font-bold text-center" id="printCompName2">কোম্পানির নাম</h1>
+                        <p class="text-center font-bold">ব্যাংক ও পার্টি বকেয়া তালিকা</p>
+                        <p class="text-center text-xs" id="printDate2">তারিখ: </p>
+                    </div>
+                    <h3 class="font-bold text-orange-700 mb-4 flex justify-between items-center no-print">
+                        <span>ব্যাংক ও পার্টি বকেয়া তালিকা</span>
+                        <button onclick="printReport('debtPrintArea')" class="bg-orange-100 text-orange-700 px-3 py-1 rounded text-xs font-bold">প্রিন্ট</button>
+                    </h3>
                     <div class="overflow-x-auto">
                         <table class="w-full text-xs text-left border-collapse">
                             <thead class="bg-orange-50">
                                 <tr>
                                     <th class="p-2 border">ধরণ</th>
                                     <th class="p-2 border">কোম্পানি</th>
-                                    <th class="p-2 border">নাম (ব্যাংক/পার্টি)</th>
-                                    <th class="p-2 border text-right text-red-600">বকেয়া টাকা</th>
+                                    <th class="p-2 border">ব্যাংক/পার্টি</th>
+                                    <th class="p-2 border text-right text-red-600 font-bold">মোট বকেয়া</th>
                                     <th class="p-2 border no-print text-center">অ্যাকশন</th>
                                 </tr>
                             </thead>
@@ -140,16 +162,24 @@
                     </div>
                 </div>
 
-                <div class="bg-white p-6 rounded-2xl shadow-sm border print-area">
-                    <h3 class="font-bold text-gray-700 mb-4">আয়-ব্যয় রিপোর্ট</h3>
+                <div class="bg-white p-6 rounded-2xl shadow-sm border print-area" id="financePrintArea">
+                    <div class="print-header">
+                        <h1 class="text-xl font-bold text-center" id="printCompName3">কোম্পানির নাম</h1>
+                        <p class="text-center font-bold">আয়-ব্যয় রিপোর্ট</p>
+                        <p class="text-center text-xs" id="printDate3">তারিখ: </p>
+                    </div>
+                    <h3 class="font-bold text-gray-700 mb-4 flex justify-between items-center no-print">
+                        <span>আয়-ব্যয় রিপোর্ট</span>
+                        <button onclick="printReport('financePrintArea')" class="bg-gray-100 text-gray-700 px-3 py-1 rounded text-xs font-bold">প্রিন্ট</button>
+                    </h3>
                     <div class="overflow-x-auto">
                         <table class="w-full text-xs text-left border-collapse">
                             <thead class="bg-slate-800 text-white">
                                 <tr>
-                                    <th class="p-2 border border-slate-700">তারিখ</th>
-                                    <th class="p-2 border border-slate-700">বিবরণ ও কোম্পানি</th>
-                                    <th class="p-2 border border-slate-700 text-right">আয় (+)</th>
-                                    <th class="p-2 border border-slate-700 text-right">ব্যয় (-)</th>
+                                    <th class="p-2 border">তারিখ</th>
+                                    <th class="p-2 border">বিবরণ</th>
+                                    <th class="p-2 border text-right">আয় (+)</th>
+                                    <th class="p-2 border text-right">ব্যয় (-)</th>
                                 </tr>
                             </thead>
                             <tbody id="mainReportBody"></tbody>
@@ -165,6 +195,26 @@
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzanyaWpkkDjq4htVpY8Rpaw410nNNeQvP5UpnNGu6JsXzCBwZnhvU8n9BOU6b6kDE/exec';
     let db = { trans: [], orders: [], debts: [] };
 
+    // প্রিন্ট ফাংশন
+    function printReport(areaId) {
+        const filter = document.getElementById('globalFilter').value;
+        const compName = filter === 'All' ? 'সকল কোম্পানি' : filter;
+        
+        // তারিখ ফরম্যাট: দিন-মাস-বছর
+        const now = new Date();
+        const formattedDate = `${now.getDate()}-${now.getMonth() + 1}-${now.getFullYear()}`;
+
+        // প্রিন্ট হেডারে ডাটা সেট করা
+        for(let i=1; i<=3; i++) {
+            const nameEl = document.getElementById('printCompName' + i);
+            const dateEl = document.getElementById('printDate' + i);
+            if(nameEl) nameEl.innerText = compName;
+            if(dateEl) dateEl.innerText = "প্রিন্ট তারিখ: " + formattedDate;
+        }
+
+        window.print();
+    }
+
     async function syncData() {
         document.getElementById('loader').classList.remove('hidden');
         try {
@@ -176,7 +226,7 @@
                 db.debts = data.debts || [];
                 renderAll();
             }
-        } catch (e) { console.log("সিঙ্ক ব্যর্থ!"); }
+        } catch (e) { console.log("Sync failed"); }
         document.getElementById('loader').classList.add('hidden');
     }
 
@@ -189,7 +239,7 @@
                 headers: { 'Content-Type': 'application/json' }
             });
             setTimeout(syncData, 2000); 
-        } catch (e) { alert("সেভ সফল হয়নি!"); }
+        } catch (e) { alert("Save Error!"); }
         document.getElementById('loader').classList.add('hidden');
     }
 
@@ -213,7 +263,6 @@
         }
     }
 
-    // Order Logic
     document.getElementById('orderForm').addEventListener('submit', (e) => {
         e.preventDefault();
         const total = parseFloat(document.getElementById('totalAmt').value);
@@ -232,13 +281,11 @@
         saveData(); e.target.reset();
     });
 
-    // Expense Logic (Updated with Note)
     document.getElementById('expForm').addEventListener('submit', (e) => {
         e.preventDefault();
         const cat = document.getElementById('expCategory').value;
         const note = document.getElementById('expNote').value;
         const desc = note ? `${cat} (${note})` : cat;
-        
         db.trans.push({
             date: document.getElementById('expDate').value,
             company: document.getElementById('expComp').value,
@@ -249,7 +296,6 @@
         saveData(); e.target.reset();
     });
 
-    // Debt Logic
     document.getElementById('debtForm').addEventListener('submit', (e) => {
         e.preventDefault();
         db.debts.push({
@@ -262,7 +308,6 @@
         saveData(); e.target.reset();
     });
 
-    // Payment Logic (Nil-based)
     function payOrderDue(id) {
         const amt = parseFloat(prompt("বকেয়া সংগ্রহের পরিমাণ (৳):"));
         if(amt > 0) {
@@ -298,24 +343,25 @@
         
         oBody.innerHTML = ''; dBody.innerHTML = ''; mBody.innerHTML = '';
 
-        // Order Render
         db.orders.forEach(o => {
             if(filter === 'All' || filter === o.company) {
-                oBody.innerHTML += `<tr class="border-b"><td class="p-2 border font-bold">${o.company}</td><td class="p-2 border">${o.client}</td><td class="p-2 border text-right">${o.total.toLocaleString()}</td><td class="p-2 border text-right text-green-600">${o.advance.toLocaleString()}</td><td class="p-2 border text-right text-red-600 font-bold">${o.due.toLocaleString()}</td><td class="p-2 border no-print text-center"><button onclick="payOrderDue(${o.id})" class="bg-indigo-600 text-white px-2 py-1 rounded-lg text-[10px] font-bold shadow-sm">বাকি শোধ</button></td></tr>`;
+                oBody.innerHTML += `<tr class="border-b"><td class="p-2 border font-bold">${o.company}</td><td class="p-2 border">${o.client}</td><td class="p-2 border text-right">${o.total.toLocaleString()}</td><td class="p-2 border text-right text-green-600">${o.advance.toLocaleString()}</td><td class="p-2 border text-right text-red-600 font-bold">${o.due.toLocaleString()}</td><td class="p-2 border no-print text-center"><button onclick="payOrderDue(${o.id})" class="bg-indigo-600 text-white px-2 py-1 rounded text-[10px] font-bold">বাকি শোধ</button></td></tr>`;
             }
         });
 
-        // Debt/Loan Render
         db.debts.forEach(d => {
             if(filter === 'All' || filter === d.company) {
-                dBody.innerHTML += `<tr class="border-b"><td class="p-2 border">${d.type}</td><td class="p-2 border">${d.company}</td><td class="p-2 border font-bold">${d.name}</td><td class="p-2 border text-right text-red-600 font-bold">${d.amount.toLocaleString()}</td><td class="p-2 border no-print text-center"><button onclick="payDebtLoan(${d.id})" class="bg-orange-500 text-white px-2 py-1 rounded-lg text-[10px] font-bold shadow-sm">পরিশোধ</button></td></tr>`;
+                dBody.innerHTML += `<tr class="border-b"><td class="p-2 border">${d.type}</td><td class="p-2 border">${d.company}</td><td class="p-2 border font-bold">${d.name}</td><td class="p-2 border text-right text-red-600 font-bold">${d.amount.toLocaleString()}</td><td class="p-2 border no-print text-center"><button onclick="payDebtLoan(${d.id})" class="bg-orange-500 text-white px-2 py-1 rounded text-[10px] font-bold">পরিশোধ</button></td></tr>`;
             }
         });
 
-        // Report Render
         db.trans.sort((a,b) => new Date(b.date) - new Date(a.date)).forEach(t => {
             if(filter === 'All' || filter === t.company) {
-                mBody.innerHTML += `<tr class="border-b"><td class="p-2 border">${t.date}</td><td class="p-2 border font-bold">${t.desc} <span class="block text-[9px] text-gray-400">কোম্পানি: ${t.company}</span></td><td class="text-right text-green-600 border font-bold">${t.type==='Income'?t.amount.toLocaleString():'-'}</td><td class="text-right text-red-600 border font-bold">${t.type==='Expense'?t.amount.toLocaleString():'-'}</td></tr>`;
+                // তারিখ পরিবর্তন (YYYY-MM-DD থেকে DD-MM-YYYY)
+                const parts = t.date.split('-');
+                const dmy = parts.length === 3 ? `${parts[2]}-${parts[1]}-${parts[0]}` : t.date;
+                
+                mBody.innerHTML += `<tr class="border-b"><td class="p-2 border">${dmy}</td><td class="p-2 border">${t.desc} <span class="block text-[9px] text-gray-400 font-bold">${t.company}</span></td><td class="text-right text-green-600 border font-bold">${t.type==='Income'?t.amount.toLocaleString():'-'}</td><td class="text-right text-red-600 border font-bold">${t.type==='Expense'?t.amount.toLocaleString():'-'}</td></tr>`;
             }
         });
     }

@@ -192,7 +192,7 @@
     </div>
 
 <script>
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzanyaWpkkDjq4htVpY8Rpaw410nNNeQvP5UpnNGu6JsXzCBwZnhvU8n9BOU6b6kDE/exec';
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwWlfMHtYaxPpIDs4WWk0x2-b8lp8RtJd6KWrnd4mLFHKx4Qx_mnJpYQcAgkrSSODlt/exec';
     let db = { trans: [], orders: [], debts: [] };
 
     // প্রিন্ট ফাংশন
@@ -357,7 +357,6 @@
 
         db.trans.sort((a,b) => new Date(b.date) - new Date(a.date)).forEach(t => {
             if(filter === 'All' || filter === t.company) {
-                // তারিখ পরিবর্তন (YYYY-MM-DD থেকে DD-MM-YYYY)
                 const parts = t.date.split('-');
                 const dmy = parts.length === 3 ? `${parts[2]}-${parts[1]}-${parts[0]}` : t.date;
                 

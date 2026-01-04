@@ -16,7 +16,7 @@
 
     <div id="loader" class="hidden fixed inset-0 bg-black/60 z-50 flex flex-col items-center justify-center text-white">
         <div class="animate-spin rounded-full h-12 w-12 border-t-4 border-white mb-4"></div>
-        <p>ডাটা সিঙ্ক হচ্ছে...</p>
+        <p>ডাটা প্রসেস হচ্ছে...</p>
     </div>
 
     <div id="loginPage" class="flex items-center justify-center min-h-screen no-print p-4">
@@ -36,7 +36,7 @@
                     <option value="বাংলাদেশ ইনসুলেশন">বাংলাদেশ ইনসুলেশন</option>
                     <option value="ক্রিস্টাল কোল্ড রুম">ক্রিস্টাল কোল্ড রুম</option>
                 </select>
-                <button onclick="syncData()" class="bg-green-600 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-md">Refresh Data</button>
+                <button onclick="syncData()" class="bg-green-600 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-md">Sync Data</button>
             </div>
             <button onclick="handleLogout()" class="text-red-500 font-bold px-4 py-2 border border-red-100 rounded-xl hover:bg-red-50">লগআউট</button>
         </div>
@@ -119,8 +119,8 @@
     </div>
 
 <script>
-    // গুরুত্বপূর্ণ: এখানে আপনার গুগল স্ক্রিপ্ট লিঙ্কটি বসানো হয়েছে
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxcSpk8FKppDbttgRf9ToUKLflE7fr_qfbAgXiwKHopdHobgdUK3IY96VTKTtJ4LDrj/exec';
+    // আপনার নতুন গুগল স্ক্রিপ্ট লিঙ্ক এখানে বসানো হয়েছে
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwLXNwhbG9NDv1bWJKN5EtbV7yme3u7Rwkx6NhquXvAZdwk-qaEu38BYzClQ0sAiuJv/exec';
 
     let db = { trans: [], orders: [], debts: [] };
 
@@ -128,11 +128,12 @@
         document.getElementById('loader').classList.remove('hidden');
         try {
             const res = await fetch(SCRIPT_URL);
-            const text = await res.text();
-            const data = JSON.parse(text);
-            if (data && data.trans) db = data;
-            renderAll();
-        } catch (e) { console.log("সিঙ্ক হয়নি।"); }
+            const data = await res.json();
+            if (data && data.trans) {
+                db = data;
+                renderAll();
+            }
+        } catch (e) { console.log("সিঙ্ক হয়নি বা ডাটা নেই।"); }
         document.getElementById('loader').classList.add('hidden');
     }
 
@@ -144,7 +145,8 @@
                 body: JSON.stringify(db),
                 headers: { 'Content-Type': 'text/plain;charset=utf-8' }
             });
-            setTimeout(syncData, 1500);
+            // সেভ হওয়ার পর ২ সেকেন্ড বিরতি দিয়ে অটো সিঙ্ক
+            setTimeout(syncData, 2000);
         } catch (e) { alert("ক্লাউড সেভ ব্যর্থ!"); }
         document.getElementById('loader').classList.add('hidden');
     }
@@ -166,7 +168,6 @@
             document.getElementById('ordDate').value = td;
             document.getElementById('expDate').value = td;
             syncData();
-            setInterval(syncData, 60000); 
         }
     }
 
@@ -230,7 +231,7 @@
         const dBody = document.getElementById('dueTableBody');
         mBody.innerHTML = ''; dBody.innerHTML = '';
 
-        if(db.trans) {
+        if(db.trans && db.trans.length > 0) {
             db.trans.sort((a,b) => new Date(b.date) - new Date(a.date)).forEach(t => {
                 if(filter === 'All' || filter === t.company) {
                     mBody.innerHTML += `<tr class="border-b"><td class="p-2 border">${t.date}</td><td class="p-2 border"><span class="block text-[10px] font-bold text-indigo-500">${t.company}</span>${t.desc}</td><td class="text-right text-green-600 border">${t.type==='Income'?t.amount.toLocaleString():'-'}</td><td class="text-right text-red-600 border">${t.type==='Expense'?t.amount.toLocaleString():'-'}</td></tr>`;
@@ -238,7 +239,7 @@
             });
         }
 
-        if(db.debts) {
+        if(db.debts && db.debts.length > 0) {
             db.debts.forEach(d => {
                 dBody.innerHTML += `<tr class="border-b"><td class="p-2 border">${d.type}</td><td class="p-2 border font-bold">${d.name}</td><td class="p-2 border text-right text-red-600 font-bold taka">${d.current.toLocaleString()}</td><td class="p-2 border no-print text-center"><button onclick="payDebt(${d.id})" class="bg-indigo-600 text-white px-2 py-1 rounded text-xs">পেমেন্ট</button></td></tr>`;
             });

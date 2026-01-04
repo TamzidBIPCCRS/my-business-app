@@ -9,7 +9,6 @@
         @import url('https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;700&display=swap');
         body { font-family: 'Hind Siliguri', sans-serif; background-color: #f8fafc; }
         
-        /* Print Styles */
         @media print {
             .no-print { display: none !important; }
             .print-area { display: block !important; width: 100% !important; border: none !important; padding: 0 !important; }
@@ -192,26 +191,22 @@
     </div>
 
 <script>
+    // আপনার নতুন লিঙ্কটি এখানে বসানো হয়েছে
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwWlfMHtYaxPpIDs4WWk0x2-b8lp8RtJd6KWrnd4mLFHKx4Qx_mnJpYQcAgkrSSODlt/exec';
+    
     let db = { trans: [], orders: [], debts: [] };
 
-    // প্রিন্ট ফাংশন
     function printReport(areaId) {
         const filter = document.getElementById('globalFilter').value;
         const compName = filter === 'All' ? 'সকল কোম্পানি' : filter;
-        
-        // তারিখ ফরম্যাট: দিন-মাস-বছর
         const now = new Date();
         const formattedDate = `${now.getDate()}-${now.getMonth() + 1}-${now.getFullYear()}`;
-
-        // প্রিন্ট হেডারে ডাটা সেট করা
         for(let i=1; i<=3; i++) {
             const nameEl = document.getElementById('printCompName' + i);
             const dateEl = document.getElementById('printDate' + i);
             if(nameEl) nameEl.innerText = compName;
             if(dateEl) dateEl.innerText = "প্রিন্ট তারিখ: " + formattedDate;
         }
-
         window.print();
     }
 
@@ -234,13 +229,16 @@
         document.getElementById('loader').classList.remove('hidden');
         try {
             await fetch(SCRIPT_URL, { 
-                method: 'POST', mode: 'no-cors',
-                body: JSON.stringify(db),
-                headers: { 'Content-Type': 'application/json' }
+                method: 'POST',
+                mode: 'no-cors',
+                body: JSON.stringify(db)
             });
-            setTimeout(syncData, 2000); 
-        } catch (e) { alert("Save Error!"); }
-        document.getElementById('loader').classList.add('hidden');
+            // সেভ করার পর ডাটা রিফ্রেশ করার জন্য ২ সেকেন্ড সময় দিন
+            setTimeout(syncData, 2500);
+        } catch (e) { 
+            alert("Save Error!"); 
+            document.getElementById('loader').classList.add('hidden');
+        }
     }
 
     function handleLogin() {
@@ -340,26 +338,21 @@
         const oBody = document.getElementById('orderTableBody');
         const dBody = document.getElementById('debtTableBody');
         const mBody = document.getElementById('mainReportBody');
-        
         oBody.innerHTML = ''; dBody.innerHTML = ''; mBody.innerHTML = '';
-
         db.orders.forEach(o => {
             if(filter === 'All' || filter === o.company) {
                 oBody.innerHTML += `<tr class="border-b"><td class="p-2 border font-bold">${o.company}</td><td class="p-2 border">${o.client}</td><td class="p-2 border text-right">${o.total.toLocaleString()}</td><td class="p-2 border text-right text-green-600">${o.advance.toLocaleString()}</td><td class="p-2 border text-right text-red-600 font-bold">${o.due.toLocaleString()}</td><td class="p-2 border no-print text-center"><button onclick="payOrderDue(${o.id})" class="bg-indigo-600 text-white px-2 py-1 rounded text-[10px] font-bold">বাকি শোধ</button></td></tr>`;
             }
         });
-
         db.debts.forEach(d => {
             if(filter === 'All' || filter === d.company) {
                 dBody.innerHTML += `<tr class="border-b"><td class="p-2 border">${d.type}</td><td class="p-2 border">${d.company}</td><td class="p-2 border font-bold">${d.name}</td><td class="p-2 border text-right text-red-600 font-bold">${d.amount.toLocaleString()}</td><td class="p-2 border no-print text-center"><button onclick="payDebtLoan(${d.id})" class="bg-orange-500 text-white px-2 py-1 rounded text-[10px] font-bold">পরিশোধ</button></td></tr>`;
             }
         });
-
         db.trans.sort((a,b) => new Date(b.date) - new Date(a.date)).forEach(t => {
             if(filter === 'All' || filter === t.company) {
                 const parts = t.date.split('-');
                 const dmy = parts.length === 3 ? `${parts[2]}-${parts[1]}-${parts[0]}` : t.date;
-                
                 mBody.innerHTML += `<tr class="border-b"><td class="p-2 border">${dmy}</td><td class="p-2 border">${t.desc} <span class="block text-[9px] text-gray-400 font-bold">${t.company}</span></td><td class="text-right text-green-600 border font-bold">${t.type==='Income'?t.amount.toLocaleString():'-'}</td><td class="text-right text-red-600 border font-bold">${t.type==='Expense'?t.amount.toLocaleString():'-'}</td></tr>`;
             }
         });

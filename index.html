@@ -191,8 +191,8 @@
     </div>
 
 <script>
-    // আপনার নতুন লিঙ্কটি এখানে বসানো হয়েছে
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwWlfMHtYaxPpIDs4WWk0x2-b8lp8RtJd6KWrnd4mLFHKx4Qx_mnJpYQcAgkrSSODlt/exec';
+    // আপনার নতুন লিঙ্কটি নিচে বসিয়ে দেওয়া হয়েছে
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxmh3DB7FI3mSWt2ajIrgFRHLHgSzFK-FpdoQW9fBDYR7jCkNdjsKSzHtCpuA4QWARK/exec';
     
     let db = { trans: [], orders: [], debts: [] };
 
@@ -233,8 +233,8 @@
                 mode: 'no-cors',
                 body: JSON.stringify(db)
             });
-            // সেভ করার পর ডাটা রিফ্রেশ করার জন্য ২ সেকেন্ড সময় দিন
-            setTimeout(syncData, 2500);
+            // সেভ করার পর রিফ্রেশ হতে কিছুটা সময় নেয় গুগল শিট
+            setTimeout(syncData, 3000);
         } catch (e) { 
             alert("Save Error!"); 
             document.getElementById('loader').classList.add('hidden');

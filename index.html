@@ -106,11 +106,11 @@
 
                 <div id="printDebts" class="bg-white p-6 rounded-2xl shadow-sm border print-area">
                     <div class="flex justify-between items-center mb-4 no-print">
-                        <h3 class="font-bold text-gray-700">বকেয়া স্ট্যাটাস</h3>
+                        <h3 class="font-bold text-gray-700">বকেয়া স্ট্যাটাস (পার্টি ও ব্যাংক)</h3>
                         <button onclick="window.print()" class="bg-blue-100 text-blue-700 px-3 py-1 rounded text-xs font-bold">প্রিন্ট</button>
                     </div>
                     <table class="w-full text-sm text-left border-collapse">
-                        <thead class="bg-gray-100"><tr><th class="p-2 border">ধরণ</th><th class="p-2 border">নাম</th><th class="p-2 border text-right">বকেয়া</th><th class="p-2 border no-print">অ্যাকশন</th></tr></thead>
+                        <thead class="bg-gray-100"><tr><th class="p-2 border">ধরণ</th><th class="p-2 border">নাম</th><th class="p-2 border text-right">বকেয়া</th><th class="p-2 border no-print text-center">অ্যাকশন</th></tr></thead>
                         <tbody id="dueTableBody"></tbody>
                     </table>
                 </div>
@@ -119,39 +119,35 @@
     </div>
 
 <script>
-    // আপনার নতুন গুগল স্ক্রিপ্ট লিঙ্ক এখানে বসানো হয়েছে (Line 56)
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzanyaWpkkDjq4htVpY8Rpaw410nNNeQvP5UpnNGu6JsXzCBwZnhvU8n9BOU6b6kDE/exec';
 
-    let db = { trans: [], orders: [], debts: [] };
+    let db = { trans: [], debts: [] };
 
     async function syncData() {
         document.getElementById('loader').classList.remove('hidden');
         try {
             const res = await fetch(SCRIPT_URL);
             const data = await res.json();
-            if (data && data.trans) {
-                db = data;
+            if (data) {
+                db.trans = data.trans || [];
+                db.debts = data.debts || [];
                 renderAll();
             }
-        } catch (e) { console.log("সিঙ্ক হয়নি বা ডাটাবেস খালি।"); }
+        } catch (e) { console.log("সিঙ্ক হয়নি।"); }
         document.getElementById('loader').classList.add('hidden');
     }
 
     async function saveData() {
         document.getElementById('loader').classList.remove('hidden');
         try {
-            const response = await fetch(SCRIPT_URL, { 
+            await fetch(SCRIPT_URL, { 
                 method: 'POST', 
-                mode: 'no-cors', // ব্রাউজার সিকিউরিটি এরর এড়াতে
+                mode: 'no-cors',
                 body: JSON.stringify(db),
                 headers: { 'Content-Type': 'application/json' }
             });
-            // গুগল শিটে ডাটা পৌঁছাতে কয়েক সেকেন্ড সময় নেয়
             setTimeout(syncData, 2500); 
-        } catch (e) { 
-            console.error("Save Error:", e);
-            alert("সেভ করার সময় সমস্যা হয়েছে!"); 
-        }
+        } catch (e) { alert("সেভ ব্যর্থ!"); }
         document.getElementById('loader').classList.add('hidden');
     }
 
@@ -159,8 +155,6 @@
         if(document.getElementById('userPhone').value.length >= 11) {
             localStorage.setItem('isLogged', 'true');
             syncData().then(() => showApp());
-        } else {
-            alert("সঠিক মোবাইল নাম্বার দিন।");
         }
     }
 
@@ -177,18 +171,34 @@
         }
     }
 
+    // অর্ডার সেভ করার সময় অটো বকেয়া লিস্টে নাম যোগ হবে
     document.getElementById('orderForm').addEventListener('submit', (e) => {
         e.preventDefault();
-        const oComp = document.getElementById('ordComp').value;
-        const oAdv = parseFloat(document.getElementById('advAmt').value);
-        db.orders.push({ company: oComp, due: parseFloat(document.getElementById('totalAmt').value) - oAdv });
+        const client = document.getElementById('clientName').value;
+        const total = parseFloat(document.getElementById('totalAmt').value);
+        const adv = parseFloat(document.getElementById('advAmt').value);
+        const due = total - adv;
+        const comp = document.getElementById('ordComp').value;
+
+        // ট্রানজেকশনে অ্যাডভান্স জমা
         db.trans.push({ 
             date: document.getElementById('ordDate').value, 
-            company: oComp, 
+            company: comp, 
             type: 'Income', 
-            amount: oAdv, 
-            desc: `অর্ডার (অ্যাডভান্স): ${document.getElementById('clientName').value}` 
+            amount: adv, 
+            desc: `অর্ডার (অ্যাডভান্স): ${client}` 
         });
+
+        // যদি বকেয়া থাকে তবে বকেয়া লিস্টে যোগ
+        if (due > 0) {
+            db.debts.push({
+                id: Date.now(),
+                type: 'পার্টি বকেয়া',
+                name: client + ' (' + comp + ')',
+                current: due
+            });
+        }
+
         saveData(); e.target.reset();
         document.getElementById('ordDate').value = new Date().toISOString().split('T')[0];
     });
@@ -217,19 +227,30 @@
         saveData(); e.target.reset();
     });
 
+    // পেমেন্ট করলে টাকা কমবে এবং ০ হয়ে গেলে Nil হয়ে মুছে যাবে
     function payDebt(id) {
-        const amt = parseFloat(prompt("পেমেন্ট এমাউন্ট দিন:"));
-        if(amt) {
-            const d = db.debts.find(i => i.id === id);
-            d.current -= amt;
-            db.trans.push({ 
-                date: new Date().toISOString().split('T')[0], 
-                company: 'Finance', 
-                type: 'Expense', 
-                amount: amt, 
-                desc: `বকেয়া পেমেন্ট: ${d.name}` 
-            });
-            saveData();
+        const amt = parseFloat(prompt("পেমেন্ট এমাউন্ট দিন (৳):"));
+        if(amt && amt > 0) {
+            const index = db.debts.findIndex(i => i.id === id);
+            if (index !== -1) {
+                db.debts[index].current -= amt;
+                
+                // আয় হিসেবে ট্রানজেকশনে যোগ
+                db.trans.push({ 
+                    date: new Date().toISOString().split('T')[0], 
+                    company: 'Finance', 
+                    type: 'Income', 
+                    amount: amt, 
+                    desc: `বকেয়া পেমেন্ট সংগ্রহ: ${db.debts[index].name}` 
+                });
+
+                // যদি টাকা ০ বা তার কম হয়, তবে লিস্ট থেকে রিমুভ (Nil)
+                if (db.debts[index].current <= 0) {
+                    db.debts.splice(index, 1);
+                    alert("বকেয়া পূর্ণ পরিশোধ হয়েছে। তালিকা থেকে মুছে ফেলা হয়েছে।");
+                }
+                saveData();
+            }
         }
     }
 
@@ -239,17 +260,17 @@
         const dBody = document.getElementById('dueTableBody');
         mBody.innerHTML = ''; dBody.innerHTML = '';
 
-        if(db.trans && db.trans.length > 0) {
+        if(db.trans) {
             db.trans.sort((a,b) => new Date(b.date) - new Date(a.date)).forEach(t => {
-                if(filter === 'All' || filter === t.company) {
+                if(filter === 'All' || filter === t.company || t.company === 'Finance') {
                     mBody.innerHTML += `<tr class="border-b"><td class="p-2 border">${t.date}</td><td class="p-2 border"><span class="block text-[10px] font-bold text-indigo-500">${t.company}</span>${t.desc}</td><td class="text-right text-green-600 border">${t.type==='Income'?t.amount.toLocaleString():'-'}</td><td class="text-right text-red-600 border">${t.type==='Expense'?t.amount.toLocaleString():'-'}</td></tr>`;
                 }
             });
         }
 
-        if(db.debts && db.debts.length > 0) {
+        if(db.debts) {
             db.debts.forEach(d => {
-                dBody.innerHTML += `<tr class="border-b"><td class="p-2 border">${d.type}</td><td class="p-2 border font-bold">${d.name}</td><td class="p-2 border text-right text-red-600 font-bold taka">${d.current.toLocaleString()}</td><td class="p-2 border no-print text-center"><button onclick="payDebt(${d.id})" class="bg-indigo-600 text-white px-2 py-1 rounded text-xs">পেমেন্ট</button></td></tr>`;
+                dBody.innerHTML += `<tr class="border-b"><td class="p-2 border">${d.type}</td><td class="p-2 border font-bold">${d.name}</td><td class="p-2 border text-right text-red-600 font-bold taka">${d.current.toLocaleString()}</td><td class="p-2 border no-print text-center"><button onclick="payDebt(${d.id})" class="bg-green-600 text-white px-3 py-1 rounded-lg text-xs font-bold">পেমেন্ট করুন</button></td></tr>`;
             });
         }
     }

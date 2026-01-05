@@ -3,361 +3,376 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Business Online Pro - Management</title>
+    <title>Business Pro - Colorful Financial Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;700&display=swap');
         body { font-family: 'Hind Siliguri', sans-serif; background-color: #f8fafc; }
         
+        /* Dashboard Colorful Cards */
+        .card-green { background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important; color: white !important; }
+        .card-red { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important; color: white !important; }
+        .card-blue { background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important; color: white !important; }
+        .card-orange { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important; color: white !important; }
+
         @media print {
             .no-print { display: none !important; }
-            .print-area { display: block !important; width: 100% !important; border: none !important; padding: 0 !important; }
-            .print-header { display: block !important; margin-bottom: 20px; border-bottom: 2px solid #333; padding-bottom: 10px; }
-            table { font-size: 12px !important; width: 100% !important; border-collapse: collapse !important; }
-            th, td { border: 1px solid #ccc !important; padding: 6px !important; }
-            body { background: white !important; }
+            body { background-color: white !important; padding: 10px; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+            .print-header { display: block !important; text-align: center; margin-bottom: 20px; }
+            .grid { display: flex !important; flex-wrap: wrap !important; gap: 10px !important; }
+            .card-green, .card-red, .card-blue, .card-orange { 
+                width: 23% !important; border-radius: 15px !important; padding: 15px !important; margin-bottom: 15px !important;
+            }
+            table { width: 100% !important; border-collapse: collapse !important; margin-top: 15px; font-size: 11px !important; }
+            th { background-color: #1e293b !important; color: white !important; }
+            .bg-slate-900 { background-color: #1e293b !important; color: white !important; }
+            .bg-orange-100 { background-color: #ffedd5 !important; }
+            .bg-slate-100 { background-color: #f1f5f9 !important; }
+            .text-red-600 { color: #dc2626 !important; }
+            .text-green-600 { color: #16a34a !important; }
         }
         .print-header { display: none; }
     </style>
 </head>
 <body>
 
-    <div id="loader" class="hidden fixed inset-0 bg-black/70 z-50 flex flex-col items-center justify-center text-white">
-        <div class="animate-spin rounded-full h-12 w-12 border-t-4 border-white mb-4"></div>
-        <p class="font-bold">ডাটা আপডেট হচ্ছে...</p>
+    <div id="loader" class="hidden fixed inset-0 bg-black/80 z-50 flex flex-col items-center justify-center text-white">
+        <div class="animate-spin rounded-full h-10 w-10 border-t-2 border-white mb-2"></div>
+        <p>লোড হচ্ছে...</p>
     </div>
 
     <div id="loginPage" class="flex items-center justify-center min-h-screen no-print p-4">
-        <div class="bg-white p-8 rounded-3xl shadow-2xl w-full max-w-md border">
-            <h2 class="text-2xl font-bold text-center mb-6 text-indigo-700">অ্যাডমিন লগইন</h2>
-            <input type="tel" id="userPhone" placeholder="মোবাইল নাম্বার দিন" class="w-full p-4 border rounded-2xl mb-4 outline-none focus:ring-2 focus:ring-indigo-500">
-            <button onclick="handleLogin()" class="w-full bg-indigo-600 text-white font-bold py-4 rounded-2xl hover:bg-indigo-700 transition shadow-lg">প্রবেশ করুন</button>
+        <div class="bg-white p-8 rounded-3xl shadow-2xl w-full max-w-sm border">
+            <h2 class="text-2xl font-bold text-center mb-6 text-slate-800">অ্যাডমিন লগইন</h2>
+            <input type="tel" id="userPhone" placeholder="মোবাইল নাম্বার" class="w-full p-4 border rounded-2xl mb-4 text-center text-lg outline-none">
+            <button onclick="handleLogin()" class="w-full bg-slate-800 text-white font-bold py-4 rounded-2xl hover:bg-black transition">প্রবেশ করুন</button>
         </div>
     </div>
 
-    <div id="appPage" class="hidden min-h-screen p-4 md:p-8 max-w-7xl mx-auto">
+    <div id="appPage" class="hidden min-h-screen p-4 md:p-6 max-w-7xl mx-auto">
         
-        <div class="flex flex-col md:flex-row justify-between items-center mb-6 bg-white p-5 rounded-2xl shadow-sm border no-print gap-4">
-            <div class="flex items-center gap-4">
-                <select id="globalFilter" onchange="renderAll()" class="bg-indigo-600 text-white px-4 py-2 rounded-xl font-bold outline-none cursor-pointer">
+        <div class="print-header">
+            <h1 class="text-3xl font-bold text-slate-800">বিজনেস ম্যানেজমেন্ট রিপোর্ট</h1>
+            <p id="printCompName" class="text-xl font-bold text-blue-700 mt-2"></p>
+            <p class="text-sm italic">তারিখ: <span id="printDate"></span></p>
+            <hr class="my-4 border-slate-300">
+        </div>
+
+        <div class="bg-white p-4 rounded-2xl shadow-sm border mb-6 no-print flex flex-wrap items-center justify-between gap-4">
+            <div class="flex gap-3 items-center">
+                <select id="globalFilter" onchange="renderAll()" class="bg-slate-800 text-white px-4 py-2 rounded-xl font-bold text-sm outline-none">
                     <option value="All">সকল কোম্পানি</option>
                     <option value="বাংলাদেশ ইনসুলেশন">বাংলাদেশ ইনসুলেশন</option>
                     <option value="ক্রিস্টাল কোল্ড রুম">ক্রিস্টাল কোল্ড রুম</option>
                 </select>
-                <button onclick="syncData()" class="bg-green-600 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-md">Sync Data</button>
+                <button onclick="syncData()" class="bg-blue-600 text-white px-4 py-2 rounded-xl text-sm font-bold shadow-md">সিঙ্ক ডাটা</button>
+                <button onclick="window.print()" class="bg-green-600 text-white px-4 py-2 rounded-xl text-sm font-bold shadow-md">কালারফুল প্রিন্ট</button>
             </div>
-            <button onclick="handleLogout()" class="text-red-500 font-bold px-4 py-2 border border-red-100 rounded-xl hover:bg-red-50">লগআউট</button>
+            <div id="adminBadge" class="hidden bg-orange-100 text-orange-700 px-4 py-1.5 rounded-full text-xs font-bold border border-orange-200">অ্যাডমিন মোড</div>
+            <button onclick="handleLogout()" class="text-red-500 font-bold text-sm">লগআউট</button>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            
-            <div class="space-y-6 no-print">
-                <div class="bg-white p-5 rounded-2xl shadow-sm border border-indigo-100">
-                    <h3 class="font-bold text-indigo-700 mb-4 border-b pb-2">নতুন অর্ডার এন্ট্রি</h3>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            <div class="card-green p-6 rounded-3xl shadow-lg">
+                <p class="opacity-90 text-sm font-bold">নগদ আয়</p>
+                <h3 id="cardInc" class="text-2xl font-bold mt-1">৳ 0</h3>
+            </div>
+            <div class="card-red p-6 rounded-3xl shadow-lg">
+                <p class="opacity-90 text-sm font-bold">নগদ ব্যয়</p>
+                <h3 id="cardExp" class="text-2xl font-bold mt-1">৳ 0</h3>
+            </div>
+            <div class="card-blue p-6 rounded-3xl shadow-lg">
+                <p class="opacity-90 text-sm font-bold">ক্যাশ ব্যালেন্স</p>
+                <h3 id="cardBal" class="text-2xl font-bold mt-1">৳ 0</h3>
+            </div>
+            <div class="card-orange p-6 rounded-3xl shadow-lg">
+                <p class="opacity-90 text-sm font-bold">মোট বকেয়া (পাওনা)</p>
+                <h3 id="cardDue" class="text-2xl font-bold mt-1">৳ 0</h3>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            <div class="lg:col-span-4 space-y-6 no-print">
+                <div class="bg-white p-6 rounded-3xl border shadow-sm">
+                    <div class="flex gap-2 mb-6">
+                        <button onclick="toggleForm('ord')" class="flex-1 bg-blue-50 text-blue-700 py-2 rounded-xl text-xs font-bold border border-blue-100">অর্ডার</button>
+                        <button onclick="toggleForm('exp')" class="flex-1 bg-rose-50 text-rose-700 py-2 rounded-xl text-xs font-bold border border-rose-100">আয়/ব্যয়</button>
+                        <button onclick="toggleForm('debt')" class="flex-1 bg-orange-50 text-orange-700 py-2 rounded-xl text-xs font-bold border border-orange-100">পার্টি বকেয়া</button>
+                    </div>
+
                     <form id="orderForm" class="space-y-3">
-                        <input type="date" id="ordDate" class="w-full p-2 border rounded-lg text-sm" required>
-                        <select id="ordComp" class="w-full p-2 border rounded-lg text-sm font-bold">
+                        <input type="date" id="ordDate" class="w-full p-3 bg-gray-50 border rounded-2xl text-sm" required>
+                        <select id="ordComp" class="w-full p-3 bg-gray-50 border rounded-2xl text-sm font-bold">
                             <option value="বাংলাদেশ ইনসুলেশন">বাংলাদেশ ইনসুলেশন</option>
                             <option value="ক্রিস্টাল কোল্ড রুম">ক্রিস্টাল কোল্ড রুম</option>
                         </select>
-                        <input type="text" id="clientName" placeholder="ক্লায়েন্টের নাম" class="w-full p-2 border rounded-lg text-sm" required>
-                        <input type="number" id="totalAmt" placeholder="মোট কন্টাক্ট টাকা" class="w-full p-2 border rounded-lg text-sm" required>
-                        <input type="number" id="advAmt" placeholder="অগ্রিম প্রদান" class="w-full p-2 border rounded-lg text-sm" required>
-                        <button type="submit" class="w-full bg-indigo-600 text-white py-2 rounded-lg font-bold shadow-md">সেভ অর্ডার</button>
+                        <input type="text" id="clientName" placeholder="ক্লায়েন্ট নাম" class="w-full p-3 bg-gray-50 border rounded-2xl text-sm" required>
+                        <input type="number" id="totalAmt" placeholder="মোট কন্টাক্ট টাকা" class="w-full p-3 bg-gray-50 border rounded-2xl text-sm" required>
+                        <input type="number" id="advAmt" placeholder="অগ্রিম সংগ্রহ" class="w-full p-3 bg-gray-50 border rounded-2xl text-sm" required>
+                        <button type="submit" class="w-full bg-blue-600 text-white py-3 rounded-2xl font-bold">সেভ অর্ডার</button>
                     </form>
-                </div>
 
-                <div class="bg-white p-5 rounded-2xl shadow-sm border border-red-100">
-                    <h3 class="font-bold text-red-700 mb-4 border-b pb-2">খরচ এন্ট্রি</h3>
-                    <form id="expForm" class="space-y-3">
-                        <input type="date" id="expDate" class="w-full p-2 border rounded-lg text-sm" required>
-                        <select id="expComp" class="w-full p-2 border rounded-lg text-sm font-bold">
+                    <form id="expForm" class="hidden space-y-3">
+                        <input type="date" id="expDate" class="w-full p-3 bg-gray-50 border rounded-2xl text-sm" required>
+                        <select id="expComp" class="w-full p-3 bg-gray-50 border rounded-2xl text-sm font-bold">
                             <option value="বাংলাদেশ ইনসুলেশন">বাংলাদেশ ইনসুলেশন</option>
                             <option value="ক্রিস্টাল কোল্ড রুম">ক্রিস্টাল কোল্ড রুম</option>
                         </select>
-                        <select id="expCategory" class="w-full p-2 border rounded-lg text-sm font-bold bg-red-50">
-                            <option value="মার্কেটিং কনভেন্স">মার্কেটিং কনভেন্স</option>
-                            <option value="লাঞ্চ বিল">লাঞ্চ বিল</option>
-                            <option value="মোবাইল বিল">মোবাইল বিল</option>
-                            <option value="ইন্টারনেট বিল">ইন্টারনেট বিল</option>
-                            <option value="বিদ্যুৎ বিল">বিদ্যুৎ বিল</option>
-                            <option value="সার্ভিস চার্জ">সার্ভিস চার্জ</option>
-                            <option value="পার্চেস">পার্চেস</option>
-                            <option value="অন্যান্য">অন্যান্য</option>
+                        <select id="expType" class="w-full p-3 bg-gray-50 border-2 border-slate-300 rounded-2xl text-sm font-bold">
+                            <option value="Expense" class="text-red-600">ব্যয় (-) </option>
+                            <option value="Income" class="text-green-600">আয় (+)</option>
                         </select>
-                        <input type="number" id="expAmt" placeholder="টাকার পরিমাণ" class="w-full p-2 border rounded-lg text-sm" required>
-                        <input type="text" id="expNote" placeholder="খরচের নোট" class="w-full p-2 border rounded-lg text-sm">
-                        <button type="submit" class="w-full bg-red-600 text-white py-2 rounded-lg font-bold shadow-md">সেভ খরচ</button>
+                        <input type="text" id="expCategory" placeholder="বিবরণ" class="w-full p-3 bg-gray-50 border rounded-2xl text-sm" required>
+                        <input type="number" id="expAmt" placeholder="টাকার পরিমাণ" class="w-full p-3 bg-gray-50 border rounded-2xl text-sm" required>
+                        <button type="submit" class="w-full bg-slate-800 text-white py-3 rounded-2xl font-bold">ডাটা সেভ করুন</button>
                     </form>
-                </div>
 
-                <div class="bg-white p-5 rounded-2xl shadow-sm border border-orange-100">
-                    <h3 class="font-bold text-orange-700 mb-4 border-b pb-2">ব্যাংক ও পার্টি বকেয়া এন্ট্রি</h3>
-                    <form id="debtForm" class="space-y-3">
-                        <select id="debtType" class="w-full p-2 border rounded-lg text-sm"><option value="ব্যাংক লোন">ব্যাংক লোন</option><option value="পার্টি বকেয়া">পার্টি বকেয়া</option></select>
-                        <select id="debtComp" class="w-full p-2 border rounded-lg text-sm font-bold">
+                    <form id="debtForm" class="hidden space-y-3">
+                        <select id="debtComp" class="w-full p-3 bg-gray-50 border rounded-2xl text-sm font-bold">
                             <option value="বাংলাদেশ ইনসুলেশন">বাংলাদেশ ইনসুলেশন</option>
                             <option value="ক্রিস্টাল কোল্ড রুম">ক্রিস্টাল কোল্ড রুম</option>
                         </select>
-                        <input type="text" id="debtName" placeholder="ব্যাংক/পার্টির নাম" class="w-full p-2 border rounded-lg text-sm" required>
-                        <input type="number" id="debtAmt" placeholder="বকেয়া এমাউন্ট" class="w-full p-2 border rounded-lg text-sm" required>
-                        <button type="submit" class="w-full bg-orange-500 text-white py-2 rounded-lg font-bold shadow-md">সেভ বকেয়া</button>
+                        <input type="text" id="debtName" placeholder="পার্টি বা ব্যাংকের নাম" class="w-full p-3 bg-gray-50 border rounded-2xl text-sm" required>
+                        <input type="number" id="debtAmt" placeholder="বকেয়া পরিমাণ" class="w-full p-3 bg-gray-50 border rounded-2xl text-sm" required>
+                        <button type="submit" class="w-full bg-orange-600 text-white py-3 rounded-2xl font-bold">বকেয়া এন্ট্রি করুন</button>
                     </form>
                 </div>
             </div>
 
-            <div class="lg:col-span-2 space-y-8">
-                
-                <div class="bg-white p-6 rounded-2xl shadow-sm border print-area" id="orderPrintArea">
-                    <div class="print-header">
-                        <h1 class="text-xl font-bold text-center" id="printCompName1">কোম্পানির নাম</h1>
-                        <p class="text-center font-bold">অর্ডার ডিটেইলস ও বকেয়া রিপোর্ট</p>
-                        <p class="text-center text-xs" id="printDate1">তারিখ: </p>
-                    </div>
-                    <h3 class="font-bold text-indigo-700 mb-4 flex justify-between items-center no-print">
-                        <span>অর্ডার ডিটেইলস ও বকেয়া</span>
-                        <button onclick="printReport('orderPrintArea')" class="bg-indigo-100 text-indigo-700 px-3 py-1 rounded text-xs font-bold">প্রিন্ট</button>
-                    </h3>
+            <div class="lg:col-span-8 space-y-8">
+                <div class="bg-white p-6 rounded-3xl shadow-sm border overflow-hidden">
+                    <h3 class="font-bold text-slate-800 mb-4 border-b pb-2">অর্ডার ও বকেয়া রিপোর্ট</h3>
                     <div class="overflow-x-auto">
-                        <table class="w-full text-xs text-left border-collapse">
-                            <thead class="bg-indigo-50">
+                        <table class="w-full text-xs text-left border">
+                            <thead class="bg-slate-900 text-white">
                                 <tr>
-                                    <th class="p-2 border">কোম্পানি</th>
-                                    <th class="p-2 border">ক্লায়েন্ট</th>
-                                    <th class="p-2 border text-right">মোট</th>
-                                    <th class="p-2 border text-right">অগ্রিম</th>
-                                    <th class="p-2 border text-right text-red-600">বাকি</th>
-                                    <th class="p-2 border no-print text-center">অ্যাকশন</th>
+                                    <th class="p-3 border">তারিখ</th>
+                                    <th class="p-3 border">ক্লায়েন্ট</th>
+                                    <th class="p-3 border text-right">মোট</th>
+                                    <th class="p-3 border text-right">সংগ্রহ</th>
+                                    <th class="p-3 border text-right">বকেয়া</th>
+                                    <th class="p-3 border no-print text-center admin-only">অ্যাকশন</th>
                                 </tr>
                             </thead>
-                            <tbody id="orderTableBody"></tbody>
+                            <tbody id="orderTableBody" class="divide-y"></tbody>
+                            <tfoot id="orderTableFoot" class="bg-slate-100 font-bold border-t-2 border-slate-900"></tfoot>
                         </table>
                     </div>
                 </div>
 
-                <div class="bg-white p-6 rounded-2xl shadow-sm border print-area" id="debtPrintArea">
-                    <div class="print-header">
-                        <h1 class="text-xl font-bold text-center" id="printCompName2">কোম্পানির নাম</h1>
-                        <p class="text-center font-bold">ব্যাংক ও পার্টি বকেয়া তালিকা</p>
-                        <p class="text-center text-xs" id="printDate2">তারিখ: </p>
-                    </div>
-                    <h3 class="font-bold text-orange-700 mb-4 flex justify-between items-center no-print">
-                        <span>ব্যাংক ও পার্টি বকেয়া তালিকা</span>
-                        <button onclick="printReport('debtPrintArea')" class="bg-orange-100 text-orange-700 px-3 py-1 rounded text-xs font-bold">প্রিন্ট</button>
-                    </h3>
+                <div class="bg-white p-6 rounded-3xl shadow-sm border">
+                    <h3 class="font-bold text-orange-800 mb-4 border-b pb-2">ব্যাংক ও পার্টি বকেয়া</h3>
                     <div class="overflow-x-auto">
-                        <table class="w-full text-xs text-left border-collapse">
-                            <thead class="bg-orange-50">
+                        <table class="w-full text-xs text-left border">
+                            <thead class="bg-orange-600 text-white">
                                 <tr>
-                                    <th class="p-2 border">ধরণ</th>
-                                    <th class="p-2 border">কোম্পানি</th>
-                                    <th class="p-2 border">ব্যাংক/পার্টি</th>
-                                    <th class="p-2 border text-right text-red-600 font-bold">মোট বকেয়া</th>
-                                    <th class="p-2 border no-print text-center">অ্যাকশন</th>
+                                    <th class="p-3 border">নাম</th>
+                                    <th class="p-3 border text-right">বকেয়া</th>
+                                    <th class="p-3 border no-print text-center admin-only">অ্যাকশন</th>
                                 </tr>
                             </thead>
-                            <tbody id="debtTableBody"></tbody>
+                            <tbody id="debtTableBody" class="divide-y"></tbody>
+                            <tfoot id="debtTableFoot" class="bg-orange-100 font-bold border-t-2 border-orange-600"></tfoot>
                         </table>
                     </div>
                 </div>
 
-                <div class="bg-white p-6 rounded-2xl shadow-sm border print-area" id="financePrintArea">
-                    <div class="print-header">
-                        <h1 class="text-xl font-bold text-center" id="printCompName3">কোম্পানির নাম</h1>
-                        <p class="text-center font-bold">আয়-ব্যয় রিপোর্ট</p>
-                        <p class="text-center text-xs" id="printDate3">তারিখ: </p>
-                    </div>
-                    <h3 class="font-bold text-gray-700 mb-4 flex justify-between items-center no-print">
-                        <span>আয়-ব্যয় রিপোর্ট</span>
-                        <button onclick="printReport('financePrintArea')" class="bg-gray-100 text-gray-700 px-3 py-1 rounded text-xs font-bold">প্রিন্ট</button>
-                    </h3>
+                <div class="bg-white p-6 rounded-3xl shadow-sm border">
+                    <h3 class="font-bold text-slate-800 mb-4 border-b pb-2">আয়-ব্যয় ক্যাশ স্টেটমেন্ট</h3>
                     <div class="overflow-x-auto">
-                        <table class="w-full text-xs text-left border-collapse">
+                        <table class="w-full text-xs text-left border">
                             <thead class="bg-slate-800 text-white">
                                 <tr>
-                                    <th class="p-2 border">তারিখ</th>
-                                    <th class="p-2 border">বিবরণ</th>
-                                    <th class="p-2 border text-right">আয় (+)</th>
-                                    <th class="p-2 border text-right">ব্যয় (-)</th>
+                                    <th class="p-3 border">তারিখ</th>
+                                    <th class="p-3 border">বিবরণ</th>
+                                    <th class="p-3 border text-right">আয় (+)</th>
+                                    <th class="p-3 border text-right">ব্যয় (-)</th>
+                                    <th class="p-3 border no-print text-center admin-only">অ্যাকশন</th>
                                 </tr>
                             </thead>
-                            <tbody id="mainReportBody"></tbody>
+                            <tbody id="mainReportBody" class="divide-y"></tbody>
+                            <tfoot id="mainReportFoot" class="bg-slate-200 font-bold border-t-2 border-slate-800"></tfoot>
                         </table>
                     </div>
                 </div>
-
             </div>
         </div>
     </div>
 
 <script>
-    // আপনার নতুন লিঙ্কটি নিচে বসিয়ে দেওয়া হয়েছে
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxmh3DB7FI3mSWt2ajIrgFRHLHgSzFK-FpdoQW9fBDYR7jCkNdjsKSzHtCpuA4QWARK/exec';
-    
+    const SUPER_ADMIN = "01893467320";
     let db = { trans: [], orders: [], debts: [] };
 
-    function printReport(areaId) {
-        const filter = document.getElementById('globalFilter').value;
-        const compName = filter === 'All' ? 'সকল কোম্পানি' : filter;
-        const now = new Date();
-        const formattedDate = `${now.getDate()}-${now.getMonth() + 1}-${now.getFullYear()}`;
-        for(let i=1; i<=3; i++) {
-            const nameEl = document.getElementById('printCompName' + i);
-            const dateEl = document.getElementById('printDate' + i);
-            if(nameEl) nameEl.innerText = compName;
-            if(dateEl) dateEl.innerText = "প্রিন্ট তারিখ: " + formattedDate;
-        }
-        window.print();
+    function isSuper() { return localStorage.getItem('pro_user') === SUPER_ADMIN; }
+
+    function dmy(dateStr) {
+        if(!dateStr) return "-";
+        const d = new Date(dateStr);
+        return `${String(d.getDate()).padStart(2, '0')}-${String(d.getMonth()+1).padStart(2, '0')}-${d.getFullYear()}`;
     }
 
     async function syncData() {
         document.getElementById('loader').classList.remove('hidden');
         try {
             const res = await fetch(SCRIPT_URL);
-            const data = await res.json();
-            if (data) {
-                db.trans = data.trans || [];
-                db.orders = data.orders || [];
-                db.debts = data.debts || [];
-                renderAll();
-            }
-        } catch (e) { console.log("Sync failed"); }
+            db = await res.json();
+            if(!db.debts) db.debts = [];
+            renderAll();
+        } catch (e) { alert("সিঙ্ক এরর!"); }
         document.getElementById('loader').classList.add('hidden');
     }
 
     async function saveData() {
         document.getElementById('loader').classList.remove('hidden');
         try {
-            await fetch(SCRIPT_URL, { 
-                method: 'POST',
-                mode: 'no-cors',
-                body: JSON.stringify(db)
-            });
-            // সেভ করার পর রিফ্রেশ হতে কিছুটা সময় নেয় গুগল শিট
-            setTimeout(syncData, 3000);
-        } catch (e) { 
-            alert("Save Error!"); 
-            document.getElementById('loader').classList.add('hidden');
+            await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(db) });
+            setTimeout(syncData, 2500);
+        } catch (e) { alert("সেভ এরর!"); document.getElementById('loader').classList.add('hidden'); }
+    }
+
+    function toggleForm(type) {
+        ['orderForm', 'expForm', 'debtForm'].forEach(f => document.getElementById(f).classList.add('hidden'));
+        document.getElementById(type + 'Form').classList.remove('hidden');
+    }
+
+    function collectOrderDue(id) {
+        const o = db.orders.find(x => x.id === id);
+        const payAmt = prompt(`বকেয়া সংগ্রহ (বাকি: ${o.due}):`, o.due);
+        if(payAmt !== null && parseFloat(payAmt) > 0) {
+            const amt = parseFloat(payAmt);
+            if(amt > o.due) return alert("অতিরিক্ত টাকা সম্ভব নয়!");
+            o.advance += amt; o.due -= amt;
+            db.trans.push({ date: new Date().toISOString().split('T')[0], company: o.company, type: 'Income', amount: amt, desc: `বকেয়া রিসিভ: ${o.client}` });
+            saveData();
         }
     }
 
-    function handleLogin() {
-        if(document.getElementById('userPhone').value.length >= 11) {
-            localStorage.setItem('isLogged', 'true');
-            syncData().then(() => showApp());
+    function payPartyDebt(id) {
+        const d = db.debts.find(x => x.id === id);
+        const payAmt = prompt(`পেমেন্ট পরিমাণ (বকেয়া: ${d.amount}):`, d.amount);
+        if(payAmt !== null && parseFloat(payAmt) > 0) {
+            const amt = parseFloat(payAmt);
+            d.amount -= amt;
+            db.trans.push({ date: new Date().toISOString().split('T')[0], company: d.company, type: 'Expense', amount: amt, desc: `বকেয়া শোধ: ${d.name}` });
+            if(d.amount <= 0) db.debts = db.debts.filter(x => x.id !== id);
+            saveData();
         }
     }
 
-    function handleLogout() { localStorage.removeItem('isLogged'); location.reload(); }
+    function deleteOrder(id) { if(confirm("অর্ডার মুছবেন?")) { db.orders = db.orders.filter(x => x.id !== id); saveData(); } }
+    function deleteDebt(id) { if(confirm("মুছবেন?")) { db.debts = db.debts.filter(x => x.id !== id); saveData(); } }
+    function deleteTrans(idx) { if(confirm("মুছবেন?")) { db.trans.splice(idx, 1); saveData(); } }
 
-    function showApp() {
-        if(localStorage.getItem('isLogged')) {
-            document.getElementById('loginPage').classList.add('hidden');
-            document.getElementById('appPage').classList.remove('hidden');
-            const td = new Date().toISOString().split('T')[0];
-            document.getElementById('ordDate').value = td;
-            document.getElementById('expDate').value = td;
-            syncData();
-        }
+    function renderAll() {
+        const filter = document.getElementById('globalFilter').value;
+        const showAdmin = isSuper();
+        
+        document.getElementById('printCompName').innerText = filter === 'All' ? 'সমন্বিত বিজনেস রিপোর্ট' : filter;
+        document.getElementById('printDate').innerText = dmy(new Date());
+
+        if(showAdmin) document.getElementById('adminBadge').classList.remove('hidden');
+
+        let sInc = 0, sExp = 0, tOrdT = 0, tOrdA = 0, tOrdD = 0, tDebt = 0;
+
+        const oBody = document.getElementById('orderTableBody'); oBody.innerHTML = '';
+        const dBody = document.getElementById('debtTableBody'); dBody.innerHTML = '';
+        const mBody = document.getElementById('mainReportBody'); mBody.innerHTML = '';
+
+        db.orders.sort((a,b) => new Date(b.date) - new Date(a.date)).forEach(o => {
+            if(filter === 'All' || filter === o.company) {
+                tOrdT += o.total; tOrdA += o.advance; tOrdD += o.due;
+                oBody.innerHTML += `<tr>
+                    <td class="p-3 border">${dmy(o.date)}</td>
+                    <td class="p-3 border"><b>${o.client}</b><br><span class="text-[9px] text-gray-400 font-normal italic">${o.company}</span></td>
+                    <td class="p-3 border text-right">${o.total.toLocaleString()}</td>
+                    <td class="p-3 border text-right text-green-600 font-bold">${o.advance.toLocaleString()}</td>
+                    <td class="p-3 border text-right ${o.due > 0 ? 'text-red-600 font-bold' : 'text-gray-400'}">${o.due > 0 ? o.due.toLocaleString() : 'Nill (Paid)'}</td>
+                    ${showAdmin ? `<td class="p-3 border no-print text-center">
+                        ${o.due > 0 ? `<button onclick="collectOrderDue(${o.id})" class="bg-blue-600 text-white px-2 py-0.5 rounded text-[10px] mr-1">সংগ্রহ</button>` : ''}
+                        <button onclick="deleteOrder(${o.id})" class="text-red-500 font-bold">X</button>
+                    </td>` : `<td class="no-print admin-only"></td>`}
+                </tr>`;
+            }
+        });
+        document.getElementById('orderTableFoot').innerHTML = `<tr><td colspan="2" class="p-3 text-right">মোট:</td><td class="p-3 text-right">${tOrdT.toLocaleString()}</td><td class="p-3 text-right text-green-600">${tOrdA.toLocaleString()}</td><td class="p-3 text-right text-red-600">${tOrdD.toLocaleString()}</td><td class="no-print admin-only"></td></tr>`;
+
+        db.debts.forEach(d => {
+            if(filter === 'All' || filter === d.company) {
+                tDebt += d.amount;
+                dBody.innerHTML += `<tr>
+                    <td class="p-3 border font-bold">${d.name}<br><span class="text-[9px] text-gray-400 font-normal italic">${d.company}</span></td>
+                    <td class="p-3 border text-right text-red-600 font-bold">${d.amount.toLocaleString()}</td>
+                    ${showAdmin ? `<td class="p-3 border no-print text-center flex justify-center gap-2">
+                        <button onclick="payPartyDebt(${d.id})" class="bg-orange-600 text-white px-3 py-0.5 rounded text-[10px]">পেমেন্ট</button>
+                        <button onclick="deleteDebt(${d.id})" class="text-red-500 font-bold">X</button>
+                    </td>` : `<td class="no-print admin-only"></td>`}
+                </tr>`;
+            }
+        });
+        document.getElementById('debtTableFoot').innerHTML = `<tr><td class="p-3 text-right uppercase">মোট বকেয়া:</td><td class="p-3 text-right text-red-600 font-bold">${tDebt.toLocaleString()}</td><td class="no-print admin-only"></td></tr>`;
+
+        db.trans.sort((a,b) => new Date(b.date) - new Date(a.date)).forEach((t, idx) => {
+            if(filter === 'All' || filter === t.company) {
+                if(t.type === 'Income') sInc += t.amount; else sExp += t.amount;
+                mBody.innerHTML += `<tr>
+                    <td class="p-3 border">${dmy(t.date)}</td>
+                    <td class="p-3 border">${t.desc}<br><span class="text-[9px] text-gray-400 font-normal italic">${t.company}</span></td>
+                    <td class="p-3 border text-right text-green-600 font-bold">${t.type==='Income'?t.amount.toLocaleString():'-'}</td>
+                    <td class="p-3 border text-right text-red-600 font-bold">${t.type==='Expense'?t.amount.toLocaleString():'-'}</td>
+                    ${showAdmin ? `<td class="p-3 border no-print text-center"><button onclick="deleteTrans(${idx})" class="text-red-500 font-bold">X</button></td>` : `<td class="no-print admin-only"></td>`}
+                </tr>`;
+            }
+        });
+        document.getElementById('mainReportFoot').innerHTML = `<tr><td colspan="2" class="p-3 text-right uppercase">সর্বমোট:</td><td class="p-3 text-right text-green-600 font-bold">${sInc.toLocaleString()}</td><td class="p-3 text-right text-red-600 font-bold">${sExp.toLocaleString()}</td><td class="no-print admin-only"></td></tr>`;
+
+        document.getElementById('cardInc').innerText = '৳ ' + sInc.toLocaleString();
+        document.getElementById('cardExp').innerText = '৳ ' + sExp.toLocaleString();
+        document.getElementById('cardBal').innerText = '৳ ' + (sInc - sExp).toLocaleString();
+        document.getElementById('cardDue').innerText = '৳ ' + (tOrdD + tDebt).toLocaleString();
+
+        document.querySelectorAll('.admin-only').forEach(el => { el.style.display = showAdmin ? '' : 'none'; });
     }
 
     document.getElementById('orderForm').addEventListener('submit', (e) => {
         e.preventDefault();
-        const total = parseFloat(document.getElementById('totalAmt').value);
-        const adv = parseFloat(document.getElementById('advAmt').value);
-        const ord = {
-            id: Date.now(),
-            date: document.getElementById('ordDate').value,
-            company: document.getElementById('ordComp').value,
-            client: document.getElementById('clientName').value,
-            total: total,
-            advance: adv,
-            due: total - adv
-        };
+        const ord = { id: Date.now(), date: document.getElementById('ordDate').value, company: document.getElementById('ordComp').value, client: document.getElementById('clientName').value, total: parseFloat(document.getElementById('totalAmt').value), advance: parseFloat(document.getElementById('advAmt').value), due: parseFloat(document.getElementById('totalAmt').value) - parseFloat(document.getElementById('advAmt').value) };
         db.orders.push(ord);
-        db.trans.push({ date: ord.date, company: ord.company, type: 'Income', amount: adv, desc: `অর্ডার অগ্রিম: ${ord.client}` });
+        db.trans.push({ date: ord.date, company: ord.company, type: 'Income', amount: ord.advance, desc: `অর্ডার অগ্রিম: ${ord.client}` });
         saveData(); e.target.reset();
     });
 
     document.getElementById('expForm').addEventListener('submit', (e) => {
         e.preventDefault();
-        const cat = document.getElementById('expCategory').value;
-        const note = document.getElementById('expNote').value;
-        const desc = note ? `${cat} (${note})` : cat;
-        db.trans.push({
-            date: document.getElementById('expDate').value,
-            company: document.getElementById('expComp').value,
-            type: 'Expense',
-            amount: parseFloat(document.getElementById('expAmt').value),
-            desc: desc
+        const type = document.getElementById('expType').value;
+        db.trans.push({ 
+            date: document.getElementById('expDate').value, 
+            company: document.getElementById('expComp').value, 
+            type: type, 
+            amount: parseFloat(document.getElementById('expAmt').value), 
+            desc: document.getElementById('expCategory').value 
         });
         saveData(); e.target.reset();
     });
 
     document.getElementById('debtForm').addEventListener('submit', (e) => {
         e.preventDefault();
-        db.debts.push({
-            id: Date.now(),
-            type: document.getElementById('debtType').value,
-            company: document.getElementById('debtComp').value,
-            name: document.getElementById('debtName').value,
-            amount: parseFloat(document.getElementById('debtAmt').value)
-        });
+        db.debts.push({ id: Date.now(), company: document.getElementById('debtComp').value, name: document.getElementById('debtName').value, amount: parseFloat(document.getElementById('debtAmt').value) });
         saveData(); e.target.reset();
     });
 
-    function payOrderDue(id) {
-        const amt = parseFloat(prompt("বকেয়া সংগ্রহের পরিমাণ (৳):"));
-        if(amt > 0) {
-            const index = db.orders.findIndex(o => o.id === id);
-            if(index !== -1) {
-                db.orders[index].advance += amt;
-                db.orders[index].due -= amt;
-                db.trans.push({ date: new Date().toISOString().split('T')[0], company: db.orders[index].company, type: 'Income', amount: amt, desc: `বকেয়া আদায়: ${db.orders[index].client}` });
-                if(db.orders[index].due <= 0) db.orders.splice(index, 1);
-                saveData();
-            }
+    function handleLogin() {
+        const ph = document.getElementById('userPhone').value;
+        if(ph.length >= 11) { localStorage.setItem('pro_logged', 'true'); localStorage.setItem('pro_user', ph); showApp(); }
+    }
+    function handleLogout() { localStorage.clear(); location.reload(); }
+    function showApp() {
+        if(localStorage.getItem('pro_logged')) {
+            document.getElementById('loginPage').classList.add('hidden');
+            document.getElementById('appPage').classList.remove('hidden');
+            syncData();
         }
     }
-
-    function payDebtLoan(id) {
-        const amt = parseFloat(prompt("বকেয়া পরিশোধের পরিমাণ (৳):"));
-        if(amt > 0) {
-            const index = db.debts.findIndex(d => d.id === id);
-            if(index !== -1) {
-                db.debts[index].amount -= amt;
-                db.trans.push({ date: new Date().toISOString().split('T')[0], company: db.debts[index].company, type: 'Expense', amount: amt, desc: `বকেয়া পরিশোধ: ${db.debts[index].name}` });
-                if(db.debts[index].amount <= 0) db.debts.splice(index, 1);
-                saveData();
-            }
-        }
-    }
-
-    function renderAll() {
-        const filter = document.getElementById('globalFilter').value;
-        const oBody = document.getElementById('orderTableBody');
-        const dBody = document.getElementById('debtTableBody');
-        const mBody = document.getElementById('mainReportBody');
-        oBody.innerHTML = ''; dBody.innerHTML = ''; mBody.innerHTML = '';
-        db.orders.forEach(o => {
-            if(filter === 'All' || filter === o.company) {
-                oBody.innerHTML += `<tr class="border-b"><td class="p-2 border font-bold">${o.company}</td><td class="p-2 border">${o.client}</td><td class="p-2 border text-right">${o.total.toLocaleString()}</td><td class="p-2 border text-right text-green-600">${o.advance.toLocaleString()}</td><td class="p-2 border text-right text-red-600 font-bold">${o.due.toLocaleString()}</td><td class="p-2 border no-print text-center"><button onclick="payOrderDue(${o.id})" class="bg-indigo-600 text-white px-2 py-1 rounded text-[10px] font-bold">বাকি শোধ</button></td></tr>`;
-            }
-        });
-        db.debts.forEach(d => {
-            if(filter === 'All' || filter === d.company) {
-                dBody.innerHTML += `<tr class="border-b"><td class="p-2 border">${d.type}</td><td class="p-2 border">${d.company}</td><td class="p-2 border font-bold">${d.name}</td><td class="p-2 border text-right text-red-600 font-bold">${d.amount.toLocaleString()}</td><td class="p-2 border no-print text-center"><button onclick="payDebtLoan(${d.id})" class="bg-orange-500 text-white px-2 py-1 rounded text-[10px] font-bold">পরিশোধ</button></td></tr>`;
-            }
-        });
-        db.trans.sort((a,b) => new Date(b.date) - new Date(a.date)).forEach(t => {
-            if(filter === 'All' || filter === t.company) {
-                const parts = t.date.split('-');
-                const dmy = parts.length === 3 ? `${parts[2]}-${parts[1]}-${parts[0]}` : t.date;
-                mBody.innerHTML += `<tr class="border-b"><td class="p-2 border">${dmy}</td><td class="p-2 border">${t.desc} <span class="block text-[9px] text-gray-400 font-bold">${t.company}</span></td><td class="text-right text-green-600 border font-bold">${t.type==='Income'?t.amount.toLocaleString():'-'}</td><td class="text-right text-red-600 border font-bold">${t.type==='Expense'?t.amount.toLocaleString():'-'}</td></tr>`;
-            }
-        });
-    }
-
     window.onload = showApp;
 </script>
 </body>
